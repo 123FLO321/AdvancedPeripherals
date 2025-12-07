@@ -220,7 +220,7 @@ public class MeBridgePeripheral extends BasePeripheral<BlockEntityPeripheralOwne
     }
 
     @LuaFunction
-    public final MethodResult getJob(IComputerAccess computer, IArguments arguments) throws LuaException {
+    public final MethodResult getCraftingJob(IComputerAccess computer, IArguments arguments) throws LuaException {
         UUID jobId;
         try {
             jobId = UUID.fromString(arguments.getString(0));

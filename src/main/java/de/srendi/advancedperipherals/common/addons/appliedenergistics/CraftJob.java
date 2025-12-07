@@ -327,11 +327,11 @@ public class CraftJob implements ILuaCallback {
     }
 
     @LuaFunction
-    public MethodResult getCpu() {
+    public MethodResult getCpuName() {
         if (usedCPU == null) {
             return MethodResult.of();
         } else {
-            return MethodResult.of(usedCPU.getName());
+            return MethodResult.of(usedCPU.getName() != null ? usedCPU.getName().getString() : "Unnamed");
         }
     }
 }
