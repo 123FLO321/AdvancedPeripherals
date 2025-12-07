@@ -35,6 +35,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.UUID;
 
 public class MeBridgePeripheral extends BasePeripheral<BlockEntityPeripheralOwner<MeBridgeEntity>> {
 
@@ -177,10 +178,13 @@ public class MeBridgePeripheral extends BasePeripheral<BlockEntityPeripheralOwne
         if (stack.getRight() == null && stack.getLeft() == 0)
             return MethodResult.of(null, "NOT_CRAFTABLE");
 
-        CraftJob job = new CraftJob(owner.getLevel(), computer, node, stack.getRight(), parsedFilter.getCount(), tile, tile, target);
+        boolean simulate = arguments.optBoolean(2, false);
+
+        UUID jobId = UUID.randomUUID();
+        CraftJob job = new CraftJob(jobId, owner.getLevel(), computer, node, stack.getRight(), parsedFilter.getCount(), simulate, tile, tile, target);
         tile.addJob(job);
         ServerWorker.add(job::startCrafting);
-        return MethodResult.of(true);
+        return MethodResult.of(true, job);
     }
 
     @LuaFunction
@@ -206,10 +210,29 @@ public class MeBridgePeripheral extends BasePeripheral<BlockEntityPeripheralOwne
         if (stack.getRight() == null && stack.getLeft() == 0)
             return MethodResult.of(null, "NOT_CRAFTABLE");
 
-        CraftJob job = new CraftJob(owner.getLevel(), computer, node, stack.getRight(), parsedFilter.getCount(), tile, tile, target);
+        boolean simulate = arguments.optBoolean(2, false);
+
+        UUID jobId = UUID.randomUUID();
+        CraftJob job = new CraftJob(jobId, owner.getLevel(), computer, node, stack.getRight(), parsedFilter.getCount(), simulate, tile, tile, target);
         tile.addJob(job);
         ServerWorker.add(job::startCrafting);
-        return MethodResult.of(true);
+        return MethodResult.of(true, job);
+    }
+
+    @LuaFunction
+    public final MethodResult getJob(IComputerAccess computer, IArguments arguments) throws LuaException {
+        UUID jobId;
+        try {
+            jobId = UUID.fromString(arguments.getString(0));
+        } catch (IllegalArgumentException e) {
+            return MethodResult.of(null, "INVALID_UUID");
+        }
+
+        CraftJob job = tile.getJob(jobId);
+        if (job == null)
+            return MethodResult.of(null, "JOB_NOT_FOUND");
+
+        return MethodResult.of(job);
     }
 
     @LuaFunction(mainThread = true)

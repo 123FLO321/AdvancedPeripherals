@@ -228,6 +228,22 @@ public class AppEngApi {
         return Collections.emptyMap();
     }
 
+    public static List<Map<String, Object>> getObjectFromKeyCounter(KeyCounter items) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (Object2LongMap.Entry<AEKey> entry : items) {
+            Map<String, Object> map = new HashMap<>();
+            AEKey key = entry.getKey();
+            long amount = entry.getLongValue();
+            if (key instanceof AEItemKey itemKey) {
+                map.putAll(getObjectFromItemStack(Pair.of(amount, itemKey), null));
+            } else if (key instanceof AEFluidKey fluidKey) {
+                map.putAll(getObjectFromFluidStack(Pair.of(amount, fluidKey), null));
+            }
+            list.add(map);
+        }
+        return list;
+    }
+
     public static MEStorage getMonitor(IGridNode node) {
         return node.getGrid().getService(IStorageService.class).getInventory();
     }

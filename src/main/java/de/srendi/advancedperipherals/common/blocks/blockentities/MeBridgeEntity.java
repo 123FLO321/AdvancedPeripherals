@@ -23,13 +23,13 @@ import net.minecraft.world.level.block.state.BlockState;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class MeBridgeEntity extends PeripheralBlockEntity<MeBridgePeripheral> implements IActionSource, IActionHost, IInWorldGridNodeHost, ICraftingSimulationRequester {
 
-    private final List<CraftJob> jobs = new CopyOnWriteArrayList<>();
+    private final ConcurrentHashMap<UUID, CraftJob> jobs = new ConcurrentHashMap<>();
     private boolean initialized = false;
     private final IManagedGridNode mainNode = GridHelper.createManagedNode(this, MeBridgeEntityListener.INSTANCE);
 
@@ -58,11 +58,13 @@ public class MeBridgeEntity extends PeripheralBlockEntity<MeBridgePeripheral> im
                 initialized = true;
             }
 
-            // Try to start the job if the job calculation finished
-            jobs.forEach(CraftJob::maybeCraft);
-
-            // Remove the job if the crafting started, we can't do anything with it anymore
-            jobs.removeIf(CraftJob::isCraftingStarted);
+            jobs.forEachValue(Long.MAX_VALUE, job -> {
+                job.maybeCraft();
+                job.checkFinished();
+                if (job.canDispose()) {
+                    jobs.remove(job.id);
+                }
+            });
         }
     }
 
@@ -124,6 +126,11 @@ public class MeBridgeEntity extends PeripheralBlockEntity<MeBridgePeripheral> im
     }
 
     public void addJob(CraftJob job) {
-        jobs.add(job);
+        jobs.put(job.id, job);
+    }
+
+    @Nullable
+    public CraftJob getJob(UUID id) {
+        return jobs.get(id);
     }
 }
