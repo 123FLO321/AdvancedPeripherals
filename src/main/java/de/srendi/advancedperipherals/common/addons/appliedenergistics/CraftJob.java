@@ -325,4 +325,13 @@ public class CraftJob implements ILuaCallback {
             return MethodResult.of(status.elapsedTimeNanos());
         }
     }
+
+    @LuaFunction
+    public MethodResult getCpu() {
+        if (usedCPU == null) {
+            return MethodResult.of();
+        } else {
+            return MethodResult.of(usedCPU.getName());
+        }
+    }
 }
