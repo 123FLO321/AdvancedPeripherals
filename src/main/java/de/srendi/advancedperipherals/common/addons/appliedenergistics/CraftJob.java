@@ -255,7 +255,7 @@ public class CraftJob implements ILuaCallback {
         if (job == null) {
             return MethodResult.of();
         }
-        return MethodResult.of(AppEngApi.getObjectFromGenericStack(job.finalOutput()));
+        return MethodResult.of(AppEngApi.getObjectFromGenericStack(job.finalOutput(), 1L));
     }
 
     @LuaFunction
@@ -292,6 +292,15 @@ public class CraftJob implements ILuaCallback {
             return MethodResult.of();
         }
         return MethodResult.of(AppEngApi.getObjectFromKeyCounter(job.missingItems()));
+    }
+
+    @LuaFunction
+    public MethodResult getPatternTimes() {
+        ICraftingPlan job = getJob();
+        if (job == null) {
+            return MethodResult.of();
+        }
+        return MethodResult.of(AppEngApi.getObjectFromPatternTimes(job.patternTimes()));
     }
 
     @LuaFunction

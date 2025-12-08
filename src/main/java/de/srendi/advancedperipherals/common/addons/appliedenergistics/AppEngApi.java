@@ -1,5 +1,6 @@
 package de.srendi.advancedperipherals.common.addons.appliedenergistics;
 
+import appeng.api.crafting.IPatternDetails;
 import appeng.api.inventories.InternalInventory;
 import appeng.api.networking.IGridNode;
 import appeng.api.networking.crafting.CraftingJobStatus;
@@ -210,7 +211,7 @@ public class AppEngApi {
 
     public static Map<String, Object> getObjectFromJob(CraftingJobStatus job) {
         Map<String, Object> map = new HashMap<>();
-        map.put("storage", getObjectFromGenericStack(job.crafting()));
+        map.put("storage", getObjectFromGenericStack(job.crafting(), 1L));
         map.put("elapsedTimeNanos", job.elapsedTimeNanos());
         map.put("totalItem", job.totalItems());
         map.put("progress", job.progress());
@@ -218,13 +219,13 @@ public class AppEngApi {
         return map;
     }
 
-    public static Map<String, Object> getObjectFromGenericStack(GenericStack stack) {
+    public static Map<String, Object> getObjectFromGenericStack(GenericStack stack, Long multiplier) {
         if (stack.what() == null)
             return Collections.emptyMap();
         if (stack.what() instanceof AEItemKey aeItemKey)
-            return getObjectFromItemStack(Pair.of(stack.amount(), aeItemKey), null);
+            return getObjectFromItemStack(Pair.of(stack.amount() * multiplier, aeItemKey), null);
         if (stack.what() instanceof AEFluidKey aeFluidKey)
-            return getObjectFromFluidStack(Pair.of(stack.amount(), aeFluidKey), null);
+            return getObjectFromFluidStack(Pair.of(stack.amount() * multiplier, aeFluidKey), null);
         return Collections.emptyMap();
     }
 
@@ -242,6 +243,30 @@ public class AppEngApi {
             list.add(map);
         }
         return list;
+    }
+
+    public static List<Map<String, Object>> getObjectFromPatternTimes(Map<IPatternDetails, Long> patterns) {
+        List<Map<String, Object>> list = new ArrayList<>();
+        for (Map.Entry<IPatternDetails, Long> entry : patterns.entrySet()) {
+            list.add(getObjectFromPatternDetails(entry.getKey(), entry.getValue()));
+        }
+        return list;
+    }
+
+    public static Map<String, Object> getObjectFromPatternDetails(IPatternDetails pattern, Long amount) {
+        List<Map<String, Object>> outputs = new ArrayList<>();
+        List<Map<String, Object>> inputs = new ArrayList<>();
+        for (GenericStack output : pattern.getOutputs()) {
+            outputs.add(getObjectFromGenericStack(output, 1L));
+        }
+        for (IPatternDetails.IInput input : pattern.getInputs()) {
+            inputs.add(getObjectFromGenericStack(input.getPossibleInputs()[0], input.getMultiplier()));
+        }
+        Map<String, Object> map = new HashMap<>();
+        map.put("amount", amount);
+        map.put("outputs", outputs);
+        map.put("inputs", inputs);
+        return map;
     }
 
     public static MEStorage getMonitor(IGridNode node) {
