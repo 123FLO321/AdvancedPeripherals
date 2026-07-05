@@ -42,6 +42,9 @@ public class CraftJob implements ILuaCallback {
     private boolean finishedCrafting = false;
     private boolean cancelledCrafting = false;
 
+    private long createdAtGameTime = -1;
+    private long disposedAtGameTime = -1;
+
     private MethodResult result;
     private LuaException exception;
 
@@ -212,6 +215,30 @@ public class CraftJob implements ILuaCallback {
 
     public boolean isActive() {
         return startedCrafting && !finishedCrafting && !cancelledCrafting;
+    }
+
+    public void stampCreated(long gameTime) {
+        if (createdAtGameTime == -1) {
+            createdAtGameTime = gameTime;
+        }
+    }
+
+    public long getCreatedGameTime() {
+        return createdAtGameTime;
+    }
+
+    public void stampDisposed(long gameTime) {
+        if (disposedAtGameTime == -1) {
+            disposedAtGameTime = gameTime;
+        }
+    }
+
+    public boolean isDisposeStamped() {
+        return disposedAtGameTime != -1;
+    }
+
+    public long getDisposedGameTime() {
+        return disposedAtGameTime;
     }
 
     @LuaFunction

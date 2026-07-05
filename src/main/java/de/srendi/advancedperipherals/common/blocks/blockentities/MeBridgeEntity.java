@@ -31,6 +31,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class MeBridgeEntity extends PeripheralBlockEntity<MeBridgePeripheral> implements IActionSource, IActionHost, IInWorldGridNodeHost, ICraftingSimulationRequester {
 
     private final ConcurrentHashMap<UUID, CraftJob> jobs = new ConcurrentHashMap<>();
+    // Keep finished jobs queryable via getCraftingJob(uuid) for 1 minute so pollers can observe terminal state.
+    private static final long JOB_RETENTION_TICKS = 1200;
+    // Jobs that never matched a CPU (or simulations never started) would otherwise leak forever.
+    private static final long JOB_MAX_AGE_TICKS = 72000;
     private boolean initialized = false;
     private final IManagedGridNode mainNode = GridHelper.createManagedNode(this, MeBridgeEntityListener.INSTANCE);
 
@@ -59,10 +63,17 @@ public class MeBridgeEntity extends PeripheralBlockEntity<MeBridgePeripheral> im
                 initialized = true;
             }
 
+            long gameTime = level.getGameTime();
             jobs.forEachValue(Long.MAX_VALUE, job -> {
+                job.stampCreated(gameTime);
                 job.maybeCraft();
                 job.checkFinished();
                 if (job.canDispose()) {
+                    job.stampDisposed(gameTime);
+                }
+                boolean retentionElapsed = job.isDisposeStamped() && gameTime - job.getDisposedGameTime() > JOB_RETENTION_TICKS;
+                boolean stuckWithoutCpu = job.getUsedCPU() == null && gameTime - job.getCreatedGameTime() > JOB_MAX_AGE_TICKS;
+                if (retentionElapsed || stuckWithoutCpu) {
                     jobs.remove(job.id);
                 }
             });
