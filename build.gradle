@@ -8,7 +8,7 @@ plugins {
     id 'org.jetbrains.changelog' version '1.2.1'
     id "com.modrinth.minotaur" version "2.+"
     id "org.jetbrains.kotlin.jvm" version "1.6.10"
-    id 'net.neoforged.gradle' version '[6.0.18,6.2)'
+    id 'net.neoforged.gradle' version '[6.0.21,6.2)'
     id 'org.spongepowered.mixin' version '0.7.+'
     id "com.github.breadmoirai.github-release" version "2.5.2"
     id 'checkstyle'
@@ -232,16 +232,6 @@ repositories {
         }
     }
     maven {
-        url = uri("https://maven.pkg.github.com/refinedmods/refinedstorage")
-        credentials {
-            username = "anything"
-            password = "\u0067hp_oGjcDFCn8jeTzIj4Ke9pLoEVtpnZMP4VQgaX"
-        }
-        content {
-            includeModule("com.refinedmods", "refinedstorage")
-        }
-    }
-    maven {
         name = 'Kotlin for Forge'
         url = 'https://thedarkcolour.github.io/KotlinForForge/'
         content {
@@ -294,9 +284,8 @@ dependencies {
     runtimeOnly fg.deobf("top.theillusivec4.curios:curios-forge:${curios_version}")
 
     // Refined Storage
-    implementation fg.deobf("com.refinedmods:refinedstorage:${refinedstorage_version}") {
-        transitive false
-    }
+    compileOnly fg.deobf("curse.maven:refined-storage-243076:${refinedstorage_version}")
+    runtimeOnly fg.deobf("curse.maven:refined-storage-243076:${refinedstorage_version}")
 
     // AE2 Things
     compileOnly fg.deobf("curse.maven:ae2things-609977:${ae2things_version}-sources")
