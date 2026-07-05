@@ -205,6 +205,15 @@ public class CraftJob implements ILuaCallback {
         return usedCPU.getJobStatus();
     }
 
+    @Nullable
+    public ICraftingCPU getUsedCPU() {
+        return usedCPU;
+    }
+
+    public boolean isActive() {
+        return startedCrafting && !finishedCrafting && !cancelledCrafting;
+    }
+
     @LuaFunction
     public MethodResult getId() {
         return MethodResult.of(id.toString());

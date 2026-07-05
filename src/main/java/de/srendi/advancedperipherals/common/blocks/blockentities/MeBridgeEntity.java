@@ -1,6 +1,7 @@
 package de.srendi.advancedperipherals.common.blocks.blockentities;
 
 import appeng.api.networking.*;
+import appeng.api.networking.crafting.ICraftingCPU;
 import appeng.api.networking.crafting.ICraftingSimulationRequester;
 import appeng.api.networking.security.IActionHost;
 import appeng.api.networking.security.IActionSource;
@@ -132,5 +133,15 @@ public class MeBridgeEntity extends PeripheralBlockEntity<MeBridgePeripheral> im
     @Nullable
     public CraftJob getJob(UUID id) {
         return jobs.get(id);
+    }
+
+    @Nullable
+    public UUID getJobIdForCpu(ICraftingCPU cpu) {
+        for (CraftJob job : jobs.values()) {
+            if (job.isActive() && job.getUsedCPU() == cpu) {
+                return job.id;
+            }
+        }
+        return null;
     }
 }

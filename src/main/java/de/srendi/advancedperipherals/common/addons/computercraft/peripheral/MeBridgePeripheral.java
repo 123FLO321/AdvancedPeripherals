@@ -555,7 +555,7 @@ public class MeBridgePeripheral extends BasePeripheral<BlockEntityPeripheralOwne
         List<Object> map = new ArrayList<>();
 
         for (ICraftingCPU iCraftingCPU : grid.getCpus()) {
-            Object cpu = AppEngApi.getObjectFromCPU(iCraftingCPU);
+            Object cpu = AppEngApi.getObjectFromCPU(iCraftingCPU, tile.getJobIdForCpu(iCraftingCPU));
             map.add(cpu);
         }
         return MethodResult.of(map);

@@ -195,6 +195,10 @@ public class AppEngApi {
     }
 
     public static Map<String, Object> getObjectFromCPU(ICraftingCPU cpu) {
+        return getObjectFromCPU(cpu, null);
+    }
+
+    public static Map<String, Object> getObjectFromCPU(ICraftingCPU cpu, @Nullable UUID jobId) {
         Map<String, Object> map = new HashMap<>();
         long storage = cpu.getAvailableStorage();
         int coProcessors = cpu.getCoProcessors();
@@ -205,6 +209,9 @@ public class AppEngApi {
         map.put("craftingJob", cpu.getJobStatus() != null ? getObjectFromJob(cpu.getJobStatus()) : null);
         map.put("name", cpu.getName() != null ? cpu.getName().getString() : "Unnamed");
         map.put("selectionMode", cpu.getSelectionMode().toString());
+        if (jobId != null) {
+            map.put("jobId", jobId.toString());
+        }
 
         return map;
     }
