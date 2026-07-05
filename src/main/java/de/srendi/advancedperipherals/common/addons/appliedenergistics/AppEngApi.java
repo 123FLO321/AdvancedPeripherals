@@ -260,7 +260,16 @@ public class AppEngApi {
             outputs.add(getObjectFromGenericStack(output, 1L));
         }
         for (IPatternDetails.IInput input : pattern.getInputs()) {
-            inputs.add(getObjectFromGenericStack(input.getPossibleInputs()[0], input.getMultiplier()));
+            Map<String, Object> entry = new HashMap<>(getObjectFromGenericStack(input.getPossibleInputs()[0], input.getMultiplier()));
+            List<Map<String, Object>> possibleInputs = new ArrayList<>();
+            for (GenericStack possible : input.getPossibleInputs()) {
+                Map<String, Object> alternative = getObjectFromGenericStack(possible, input.getMultiplier());
+                if (!alternative.isEmpty()) {
+                    possibleInputs.add(alternative);
+                }
+            }
+            entry.put("possibleInputs", possibleInputs);
+            inputs.add(entry);
         }
         Map<String, Object> map = new HashMap<>();
         map.put("amount", amount);
