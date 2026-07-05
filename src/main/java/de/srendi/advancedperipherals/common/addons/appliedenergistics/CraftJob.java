@@ -37,10 +37,10 @@ public class CraftJob implements ILuaCallback {
     private final boolean simulate;
     private final Level world;
     private Future<ICraftingPlan> futureJob;
-    @Nullable private ICraftingCPU usedCPU;
-    private boolean startedCrafting = false;
-    private boolean finishedCrafting = false;
-    private boolean cancelledCrafting = false;
+    @Nullable private volatile ICraftingCPU usedCPU;
+    private volatile boolean startedCrafting = false;
+    private volatile boolean finishedCrafting = false;
+    private volatile boolean cancelledCrafting = false;
 
     private long createdAtGameTime = -1;
     private long disposedAtGameTime = -1;
@@ -138,7 +138,6 @@ public class CraftJob implements ILuaCallback {
 
         ICraftingService crafting = grid.getService(ICraftingService.class);
         List<ICraftingCPU> idleCpus = crafting.getCpus().stream().filter(cpu -> !cpu.isBusy()).toList();
-        System.out.println(idleCpus.size());
         ICraftingSubmitResult result = crafting.submitJob(job, null, target, false, this.source);
         if (!result.successful()) {
             fireEvent(false, "Could not start crafting: " + result.errorCode());
@@ -215,6 +214,15 @@ public class CraftJob implements ILuaCallback {
 
     public boolean isActive() {
         return startedCrafting && !finishedCrafting && !cancelledCrafting;
+    }
+
+    public boolean isActivelyUsing(ICraftingCPU cpu) {
+        if (!isActive() || usedCPU != cpu) {
+            return false;
+        }
+        CraftingJobStatus status = cpu.getJobStatus();
+        ICraftingPlan job = getJob();
+        return status != null && job != null && status.crafting().equals(job.finalOutput());
     }
 
     public void stampCreated(long gameTime) {

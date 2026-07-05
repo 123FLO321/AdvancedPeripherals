@@ -149,7 +149,7 @@ public class MeBridgeEntity extends PeripheralBlockEntity<MeBridgePeripheral> im
     @Nullable
     public UUID getJobIdForCpu(ICraftingCPU cpu) {
         for (CraftJob job : jobs.values()) {
-            if (job.isActive() && job.getUsedCPU() == cpu) {
+            if (job.isActivelyUsing(cpu)) {
                 return job.id;
             }
         }
