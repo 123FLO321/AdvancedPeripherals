@@ -236,6 +236,24 @@ public class MeBridgePeripheral extends BasePeripheral<BlockEntityPeripheralOwne
     }
 
     @LuaFunction(mainThread = true)
+    public final MethodResult cancelCraftingJob(IArguments arguments) throws LuaException {
+        UUID jobId;
+        try {
+            jobId = UUID.fromString(arguments.getString(0));
+        } catch (IllegalArgumentException e) {
+            return MethodResult.of(false, "INVALID_UUID");
+        }
+
+        CraftJob job = tile.getJob(jobId);
+        if (job == null)
+            return MethodResult.of(false, "JOB_NOT_FOUND");
+
+        if (job.attemptCancel())
+            return MethodResult.of(true);
+        return MethodResult.of(false, "NOT_CANCELLABLE");
+    }
+
+    @LuaFunction(mainThread = true)
     public final MethodResult getEnergyUsage() {
         if (!isConnected())
             return notConnected();
