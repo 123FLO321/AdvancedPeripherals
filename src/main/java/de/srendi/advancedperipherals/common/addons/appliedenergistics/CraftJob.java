@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 
@@ -115,14 +116,14 @@ public class CraftJob implements ILuaCallback {
     }
 
     public boolean attemptCraft() {
-        if (startedCrafting || futureJob == null || !futureJob.isDone()) {
+        if (startedCrafting || cancelledCrafting || futureJob == null || !futureJob.isDone()) {
             return false;
         }
 
         ICraftingPlan job;
         try {
             job = futureJob.get();
-        } catch (ExecutionException | InterruptedException ex) {
+        } catch (ExecutionException | InterruptedException | CancellationException ex) {
             AdvancedPeripherals.debug("Tried to get job, but job calculation is not done. Should be done.", org.apache.logging.log4j.Level.FATAL);
             ex.printStackTrace();
             return false;
@@ -169,6 +170,14 @@ public class CraftJob implements ILuaCallback {
         if (cancelledCrafting || finishedCrafting) {
             return false;
         }
+        Future<ICraftingPlan> future = futureJob;
+        if (future != null && !future.isDone()) {
+            // Calculation still pending: cancel it without ever blocking (a mainThread
+            // caller waiting on get() would deadlock the tick that drives the calculation).
+            cancelledCrafting = true;
+            future.cancel(true);
+            return true;
+        }
         ICraftingPlan job = getJob();
         if (job != null && usedCPU != null) {
             CraftingJobStatus status = usedCPU.getJobStatus();
@@ -178,8 +187,8 @@ public class CraftJob implements ILuaCallback {
                 return true;
             }
         }
-        if (futureJob != null) {
-            futureJob.cancel(true);
+        if (future != null) {
+            future.cancel(true);
             cancelledCrafting = true;
             return true;
         }
