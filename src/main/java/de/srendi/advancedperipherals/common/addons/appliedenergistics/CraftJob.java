@@ -5,17 +5,23 @@ import appeng.api.networking.IGridNode;
 import appeng.api.networking.crafting.*;
 import appeng.api.networking.security.IActionSource;
 import appeng.api.stacks.AEKey;
+import appeng.api.stacks.KeyCounter;
+import appeng.crafting.execution.CraftingCpuLogic;
+import appeng.me.cluster.implementations.CraftingCPUCluster;
 import dan200.computercraft.api.lua.ILuaCallback;
 import dan200.computercraft.api.lua.LuaException;
 import dan200.computercraft.api.lua.LuaFunction;
 import dan200.computercraft.api.lua.MethodResult;
 import dan200.computercraft.api.peripheral.IComputerAccess;
 import de.srendi.advancedperipherals.AdvancedPeripherals;
+import it.unimi.dsi.fastutil.objects.Object2LongMap;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -386,5 +392,22 @@ public class CraftJob implements ILuaCallback {
         } else {
             return MethodResult.of(usedCPU.getName() != null ? usedCPU.getName().getString() : "Unnamed");
         }
+    }
+
+    @LuaFunction(mainThread = true)
+    public MethodResult getStatusItems() {
+        ICraftingCPU cpu = usedCPU;
+        if (cpu == null || !isActivelyUsing(cpu) || !(cpu instanceof CraftingCPUCluster cluster)) {
+            return MethodResult.of(List.of());
+        }
+        CraftingCpuLogic logic = cluster.craftingLogic;
+        KeyCounter allItems = new KeyCounter();
+        logic.getAllItems(allItems);
+        List<Map<String, Object>> entries = new ArrayList<>();
+        for (Object2LongMap.Entry<AEKey> entry : allItems) {
+            AEKey key = entry.getKey();
+            entries.add(AppEngApi.getObjectFromStatusItem(key, logic.getStored(key), logic.getWaitingFor(key), logic.getPendingOutputs(key)));
+        }
+        return MethodResult.of(entries);
     }
 }

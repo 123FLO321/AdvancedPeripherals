@@ -252,6 +252,22 @@ public class AppEngApi {
         return list;
     }
 
+    public static Map<String, Object> getObjectFromStatusItem(AEKey key, long stored, long active, long pending) {
+        Map<String, Object> map = new HashMap<>();
+        long amount = stored + active + pending;
+        if (key instanceof AEItemKey itemKey) {
+            map.putAll(getObjectFromItemStack(Pair.of(amount, itemKey), null));
+        } else if (key instanceof AEFluidKey fluidKey) {
+            map.putAll(getObjectFromFluidStack(Pair.of(amount, fluidKey), null));
+        } else {
+            map.put("amount", amount);
+        }
+        map.put("stored", stored);
+        map.put("active", active);
+        map.put("pending", pending);
+        return map;
+    }
+
     public static List<Map<String, Object>> getObjectFromPatternTimes(Map<IPatternDetails, Long> patterns) {
         List<Map<String, Object>> list = new ArrayList<>();
         for (Map.Entry<IPatternDetails, Long> entry : patterns.entrySet()) {
